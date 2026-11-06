@@ -135,7 +135,8 @@ func skelBridges(_ L: SkelLayout) -> [CGPath] {
     ]
 }
 
-func drawSkeletonFront(_ ctx: CGContext, _ st: MvState) {
+/// `lift` (0...1) raises the bridges off the plate toward the viewer and lets them go translucent, revealing the train.
+func drawSkeletonFront(_ ctx: CGContext, _ st: MvState, lift: Double = 0) {
     let L = SkelLayout()
     let cs = skelCase
     drawCaseUnder(ctx, cs)
@@ -156,12 +157,20 @@ func drawSkeletonFront(_ ctx: CGContext, _ st: MvState) {
         drawWheel(ctx, L.fourth, WheelSpec(teeth: 80, r: L.fourthR, spokes: 4, curve: 0.5, spokeW: 0.32, hubR: 0.7, pinionLeaves: 10, pinionR: 0.5), rot: st.fourth)
         escapeWheel(ctx, L.escape, R: L.escapeR, rot: st.escape)
         drawWheel(ctx, L.crownWheel, WheelSpec(teeth: 30, r: L.crownWheelR, metal: .steel, spokes: 0, jewel: false), rot: -st.ratchet * L.ratchetR / L.crownWheelR)
-        // Bridges.
-        for (i, b) in skelBridges(L).enumerated() { drawBridge(ctx, b, metal: .rhodium, finish: .polished, eo: i == 0) }
-        // Pivots: jewels in polished gold chatons held by blued screws.
-        for (p, r) in [(L.third, 0.38), (L.fourth, 0.36), (L.escape, 0.32), (L.pallet, 0.3)] { jewel(ctx, p, r) }
-        for (a, r) in [(-68.0, 16.0), (68, 16), (84, 16), (162, 16), (172, 16), (236, 16), (188, 16), (-112, 16), (0, 16.05), (120, 16.05), (-150, 16.05)] {
-            screw(ctx, pol(r - 0.05, rad(a)), 0.5, slot: rad(a * 3.1))
+        // Bridges, with the jewels and screws they carry.
+        ctx.scoped {
+            if lift > 0 {
+                ctx.translateBy(x: -1.1 * lift, y: 1.6 * lift)
+                ctx.setAlpha(1 - 0.72 * lift)
+                ctx.beginTransparencyLayer(auxiliaryInfo: nil)
+            }
+            for (i, b) in skelBridges(L).enumerated() { drawBridge(ctx, b, metal: .rhodium, finish: .polished, eo: i == 0) }
+            // Pivots: jewels in polished gold chatons held by blued screws.
+            for (p, r) in [(L.third, 0.38), (L.fourth, 0.36), (L.escape, 0.32), (L.pallet, 0.3)] { jewel(ctx, p, r) }
+            for (a, r) in [(-68.0, 16.0), (68, 16), (84, 16), (162, 16), (172, 16), (236, 16), (188, 16), (-112, 16), (0, 16.05), (120, 16.05), (-150, 16.05)] {
+                screw(ctx, pol(r - 0.05, rad(a)), 0.5, slot: rad(a * 3.1))
+            }
+            if lift > 0 { ctx.endTransparencyLayer() }
         }
         screw(ctx, L.crownWheel, 0.75, slot: -st.ratchet * L.ratchetR / L.crownWheelR + 0.6)
         drawRatchet(ctx, L.barrel, r: 3.7, rot: st.ratchet, clickAt: rad(-38), openwork: true)
