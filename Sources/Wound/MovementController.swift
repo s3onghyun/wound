@@ -10,6 +10,10 @@ final class MovementController: ObservableObject {
     @Published private(set) var rotorTurns = 0.0
     @Published private(set) var backShown = false
     @Published private(set) var overWinding = false
+    @Published var explaining = false
+    @Published private(set) var explainStep = 0
+    @Published var bridgesLifted = false
+    @Published private(set) var lift = 0.0
     @AppStorage("automatic") var automatic = true
     // Sound is opt-in: a running desktop watch should not begin ticking unprompted.
     @AppStorage("muted") var muted = true
@@ -48,13 +52,16 @@ final class MovementController: ObservableObject {
         let wasRunning = stored.running
         stored.advance(to: now, speed: demoSpeed)
         if wasRunning {
-            balancePhase += wallDelta * 8 * .pi * 2
-            tickAccumulator += wallDelta * 8
+            // Explaining slows only the drawn train; reserve and displayed time stay real.
+            let motion = wallDelta * (explaining ? explainSlowdown : 1)
+            balancePhase += motion * 8 * .pi * 2
+            tickAccumulator += motion * 8
             while tickAccumulator >= 1 {
                 tickAccumulator -= 1
                 sounds.tick(muted: muted)
             }
         }
+        lift += ((explaining && bridgesLifted ? 1 : 0) - lift) * min(1, wallDelta * 6)
         automaticFallback()
         persist()
     }
@@ -79,6 +86,9 @@ final class MovementController: ObservableObject {
     }
 
     func toggleBack() { backShown.toggle() }
+    var explainCurrent: ExplainStep { explainSteps[explainStep] }
+    var showsBack: Bool { explaining ? explainCurrent.back : backShown }
+    func stepExplain(_ delta: Int) { explainStep = (explainStep + delta + explainSteps.count) % explainSteps.count }
     func exhaustForDemo() { stored.reserve = 0; persist() }
     func resetDemo() { stored = .fresh(at: .now); persist() }
 

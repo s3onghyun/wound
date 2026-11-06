@@ -15,6 +15,8 @@ struct MvState {
     var reversers: Double = 0    // reversing-wheel angle (rad)
     var label: String = ""
 
+    static let beatsPerSecond = 8.0 // 28,800 vph
+
     // Gear train (cw radians). Escape: 15 teeth, one half-tooth per beat.
     var escape: Double { -beats * 2 * π / 30 }
     var fourth: Double { beats * 2 * π / 30 / 16 }           // 1 rev/min: seconds

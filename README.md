@@ -35,11 +35,49 @@ Winding is intentionally capped at 40 hours.
 Past full reserve the crown gives visual resistance instead of adding more energy.
 Reserve and the displayed time are saved in `UserDefaults`, so draining continues while Wound is closed.
 
+## Explain the movement
+
+Press **Explain** to walk the power path one part at a time:
+crown → ratchet & click → mainspring barrel → going train → escape wheel → pallet fork → balance & hairspring → hands, then the automatic rotor on the caseback.
+Use ← and → (or the chevrons) to move between stations.
+
+- The lit part is the real drawing. Everything else dims, so there are no arrows or floating labels.
+- The train runs at 1/20 speed while you explain, so you can see each beat lock and release the escape wheel. The reserve and the displayed time stay in real time.
+- **Lift bridges** raises the bridges off the plate and makes them translucent, so you can see the wheels underneath.
+- Every number in a caption, such as wheel speeds, the reserve, beats per hour, or the reserve one crown turn adds, is computed from the same movement model that drives the drawing.
+
+The mode follows the [Anatomy](https://github.com/wheresryan22/anatomy) Claude skill, an October 2026 viral hit for explaining an idea by building it as a working object.
+Its rule is "the object is the explanation."
+The Anatomy skill itself is not used. Wound's version is plain Core Graphics in `Sources/Wound/Art/Explain.swift`.
+
+![Explain: crown](screenshots/explain-crown.png)
+![Explain: going train with the bridges lifted](screenshots/explain-train-lifted.png)
+![Explain: balance and hairspring](screenshots/explain-balance.png)
+![Explain: automatic rotor](screenshots/explain-rotor.png)
+
+[29-second explain reel](demo/wound-explain.mp4), rendered with:
+
+```sh
+swift run Wound --render-explain demo/explain-frames
+ffmpeg -framerate 10 -i demo/explain-frames/frame-%04d.png -c:v libx264 -pix_fmt yuv420p demo/wound-explain.mp4
+```
+
+The reel runs the train at 1/5 speed so that each 3-second station shows some motion.
+
 ## Tests
 
 ```sh
-swift run Wound --self-test
+swift test
 ```
+
+With only the Command Line Tools installed and no Xcode, point the compiler at the bundled Testing framework:
+
+```sh
+F=/Library/Developer/CommandLineTools/Library/Developer/Frameworks
+swift test -Xswiftc -F$F -Xlinker -F$F -Xlinker -rpath -Xlinker $F
+```
+
+`swift run Wound --self-test` still runs the movement checks without any test framework.
 
 The dependency-free Swift movement checks cover reserve drain, stopped-time behavior, winding saturation, automatic-winding saturation, and persistence encoding.
 

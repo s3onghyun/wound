@@ -40,13 +40,19 @@ private struct WoundView: View {
                 }
                 Spacer()
                 Button {
+                    movement.explaining.toggle()
+                } label: {
+                    Label(movement.explaining ? "Done" : "Explain", systemImage: "scope")
+                }
+                Button {
                     movement.toggleBack()
                 } label: {
                     Label(movement.backShown ? "Dial" : "Caseback", systemImage: "arrow.triangle.2.circlepath")
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
+                .disabled(movement.explaining)
             }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
             .padding(.horizontal, 26)
             .padding(.top, 21)
 
@@ -63,6 +69,8 @@ private struct WoundView: View {
             .frame(maxHeight: 400)
             .clipped()
 
+            if movement.explaining { ExplainPanel() }
+
             VStack(spacing: 7) {
                 HStack {
                     Text("POWER RESERVE")
@@ -71,7 +79,7 @@ private struct WoundView: View {
                 }
                 ProgressView(value: movement.reserveFraction)
                     .tint(movement.running ? Color(red: 0.82, green: 0.54, blue: 0.16) : .red)
-                Text(movement.running ? "ESCAPEMENT RUNNING · 8 BEATS / SEC" : "UNWOUND · SCROLL THE CROWN TO START")
+                Text(!movement.running ? "UNWOUND · SCROLL THE CROWN TO START" : movement.explaining ? "SLOW MOTION · TRAIN AT 1/20 SPEED" : "ESCAPEMENT RUNNING · 8 BEATS / SEC")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .foregroundStyle(movement.running ? Color.secondary : Color.red)
             }
@@ -92,6 +100,37 @@ private struct WoundView: View {
             .padding(.bottom, 24)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+    }
+}
+
+/// One station of the explain tour: which part is lit, what it does, and the controls to move along.
+private struct ExplainPanel: View {
+    @EnvironmentObject private var movement: MovementController
+
+    var body: some View {
+        let step = movement.explainCurrent
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 10) {
+                Text("\(movement.explainStep + 1)/\(explainSteps.count) · \(step.title.uppercased())")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(Color(red: 0.91, green: 0.76, blue: 0.48))
+                Spacer()
+                Toggle("Lift bridges", isOn: $movement.bridgesLifted)
+                    .toggleStyle(.switch)
+                    .disabled(step.back)
+                Button { movement.stepExplain(-1) } label: { Label("Previous part", systemImage: "chevron.left").labelStyle(.iconOnly) }
+                    .keyboardShortcut(.leftArrow, modifiers: [])
+                Button { movement.stepExplain(1) } label: { Label("Next part", systemImage: "chevron.right").labelStyle(.iconOnly) }
+                    .keyboardShortcut(.rightArrow, modifiers: [])
+            }
+            .font(.system(size: 11, weight: .medium))
+            .controlSize(.small)
+            Text(step.caption(movement.renderState()))
+                .font(.system(size: 11))
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, minHeight: 30, alignment: .topLeading)
+        }
+        .padding(.horizontal, 30)
     }
 }
 
@@ -136,11 +175,12 @@ private final class WatchNSView: NSView {
             background(context, Double(bounds.width), Double(bounds.height), top: Col(hex: 0x1c1d21), bottom: Col(hex: 0x090a0d))
             inWatch(context, center: CGPoint(x: bounds.midX, y: bounds.midY), scale: side / 56) {
                 let state = movement.renderState()
-                if movement.backShown {
+                if movement.showsBack {
                     drawBack(context, state, style: .skeleton, cs: skelCase)
                 } else {
-                    drawSkeletonFront(context, state)
+                    drawSkeletonFront(context, state, lift: movement.lift)
                 }
+                if movement.explaining { drawSpotlight(context, movement.explainCurrent.spots(state)) }
             }
         }
     }
