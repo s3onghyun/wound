@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Show selected Xcode
+        run: xcodebuild -version
+      - name: Check tag and version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: test "$TAG" = "v$(tr -d '\r\n' < VERSION)"
+      - name: Build release executable
+        run: swift build -c release --product Wound
+      - name: Run movement checks
+        run: swift test
+      - name: Build universal app and release archive
+        run: ./scripts/release-artifacts.sh
+      - name: Extract release notes
+        run: |
+          version=$(tr -d '\r\n' < VERSION)
+          { sed "s/@VERSION@/$version/g" .github/release-header.md; ./scripts/changelog-notes.sh "$version"; } > release-notes.md
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            --title "Wound $TAG" \
+            --notes-file release-notes.md \
+            dist/*.zip dist/*.sha256 demo/wound-demo.mp4 demo/wound-explain.mp4 screenshots/explain-*.png

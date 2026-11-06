@@ -13,7 +13,22 @@ The watch face is a skeleton Cal. W-28S drawn in Core Graphics, with an escapeme
 
 ![Automatic caseback](screenshots/caseback-rotor.png)
 
-## Run
+## Install
+
+Wound needs macOS 14 or later and runs on Apple silicon and Intel Macs.
+
+With Homebrew:
+
+```sh
+brew install --cask s3onghyun/tap/wound
+```
+
+Or download `Wound-0.1.0-macos-universal.zip` from the [latest release](https://github.com/s3onghyun/wound/releases/latest), unzip it, and move `Wound.app` to Applications.
+The app is ad-hoc signed but not notarized.
+On macOS 15 or later, open it once, then choose **Open Anyway** in System Settings -> Privacy & Security.
+On macOS 13-14, Control-click the app and choose **Open**.
+
+## Run from source
 
 Wound needs macOS 14 or later and the Swift toolchain that ships with Xcode or Command Line Tools.
 
@@ -23,6 +38,7 @@ swift run
 
 Use the menu-bar extra to check the reserve without opening the floating window.
 The Settings window has sound, always-on-top, automatic winding, and accelerated demo-speed controls.
+Sound is off by default.
 
 ## Interaction
 
@@ -81,7 +97,11 @@ swift test -Xswiftc -F$F -Xlinker -F$F -Xlinker -rpath -Xlinker $F
 
 The dependency-free Swift movement checks cover reserve drain, stopped-time behavior, winding saturation, automatic-winding saturation, and persistence encoding.
 
-## Rendered demo
+## Demo
+
+The [24-second movement demo](https://github.com/s3onghyun/wound/releases/latest/download/wound-demo.mp4) starts unwound, is crown-wound, runs, and then shows the automatic rotor.
+
+To render it from source:
 
 ```sh
 swift run Wound --render-demo demo/frames
