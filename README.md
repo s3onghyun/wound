@@ -1,8 +1,8 @@
 # Wound
 
-> A watch you have to wind. On purpose.
+> An interactive mechanical watch for macOS that you have to wind. On purpose.
 
-Wound is a small macOS mechanical watch that is inconvenient by design.
+Wound is a small, open-source macOS mechanical watch that is inconvenient by design.
 Its 40-hour power reserve drains in real time, so the watch stops when you neglect it.
 Scroll over its crown or drag upward to wind it again.
 Your everyday mouse and keyboard activity also gives its automatic rotor a little energy.
