@@ -1,0 +1,54 @@
+/* Wound UI strings. Keys are the English text from the Swift sources; SwiftUI literals and
+   String(localized:) look them up in Wound.app/Contents/Resources/en.lproj. */
+
+/* Window and menu bar */
+"%@ remaining" = "%@ remaining";
+"Unwound" = "Unwound";
+"Show Wound" = "Show Wound";
+"Settings…" = "Settings…";
+"Automatic winding" = "Automatic winding";
+"Privacy Policy" = "Privacy Policy";
+"Quit Wound" = "Quit Wound";
+"Explain" = "Explain";
+"Done" = "Done";
+"Caseback" = "Caseback";
+"Dial" = "Dial";
+"Winding crown" = "Winding crown";
+"Scroll over the crown or drag it upward to wind the watch" = "Scroll over the crown or drag it upward to wind the watch";
+"POWER RESERVE" = "POWER RESERVE";
+"UNWOUND · SCROLL THE CROWN TO START" = "UNWOUND · SCROLL THE CROWN TO START";
+"SLOW MOTION · TRAIN AT 1/20 SPEED" = "SLOW MOTION · TRAIN AT 1/20 SPEED";
+"ESCAPEMENT RUNNING · 8 BEATS / SEC" = "ESCAPEMENT RUNNING · 8 BEATS / SEC";
+"Automatic" = "Automatic";
+"Sound" = "Sound";
+"Stop" = "Stop";
+"Reset" = "Reset";
+"Lift bridges" = "Lift bridges";
+"Previous part" = "Previous part";
+"Next part" = "Next part";
+
+/* Settings window */
+"Automatic winding from activity" = "Automatic winding from activity";
+"Always on top" = "Always on top";
+"Demo speed" = "Demo speed";
+"Real time" = "Real time";
+
+/* Explain tour (Sources/Wound/Art/Explain.swift) */
+"Crown" = "Crown";
+"Winding the crown turns the crown wheel, which turns the ratchet. One full turn stores %lld min." = "Winding the crown turns the crown wheel, which turns the ratchet. One full turn stores %lld min.";
+"Ratchet & click" = "Ratchet & click";
+"The ratchet sits on the barrel arbor. The click drops into each tooth so the spring cannot unwind back through the crown." = "The ratchet sits on the barrel arbor. The click drops into each tooth so the spring cannot unwind back through the crown.";
+"Mainspring barrel" = "Mainspring barrel";
+"The coiled mainspring holds %@ h, %@ h right now. Its toothed drum turns once every %@ h and drives the train." = "The coiled mainspring holds %@ h, %@ h right now. Its toothed drum turns once every %@ h and drives the train.";
+"Going train" = "Going train";
+"Centre, third and fourth wheels gear the spring down: the centre wheel turns once every %@ min, the fourth once every %@ s." = "Centre, third and fourth wheels gear the spring down: the centre wheel turns once every %@ min, the fourth once every %@ s.";
+"Escape wheel" = "Escape wheel";
+"The escape wheel would spin freely, but it may only advance half a tooth per beat: %@ turns a minute." = "The escape wheel would spin freely, but it may only advance half a tooth per beat: %@ turns a minute.";
+"Pallet fork" = "Pallet fork";
+"Two ruby pallets lock and release the escape wheel %@ times a second, kicking the balance at each release." = "Two ruby pallets lock and release the escape wheel %@ times a second, kicking the balance at each release.";
+"Balance & hairspring" = "Balance & hairspring";
+"The balance swings against its hairspring. This is the timekeeper: %@ beats a second, %@ an hour." = "The balance swings against its hairspring. This is the timekeeper: %@ beats a second, %@ an hour.";
+"Hands" = "Hands";
+"The centre wheel carries the minute hand, the motion works divide it by 12 for the hour hand, and the fourth wheel carries the small seconds." = "The centre wheel carries the minute hand, the motion works divide it by 12 for the hour hand, and the fourth wheel carries the small seconds.";
+"Automatic rotor" = "Automatic rotor";
+"On the back, the oscillating weight swings with motion (here, your mouse and keyboard). Reversing wheels turn both directions into winding." = "On the back, the oscillating weight swings with motion (here, your mouse and keyboard). Reversing wheels turn both directions into winding.";

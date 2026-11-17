@@ -1,0 +1,54 @@
+/* Wound UI strings. Keys are the English text from the Swift sources; SwiftUI literals and
+   String(localized:) look them up in Wound.app/Contents/Resources/ko.lproj. */
+
+/* Window and menu bar */
+"%@ remaining" = "%@ 남음";
+"Unwound" = "태엽 풀림";
+"Show Wound" = "Wound 보기";
+"Settings…" = "설정…";
+"Automatic winding" = "자동 감기";
+"Privacy Policy" = "개인정보 처리방침";
+"Quit Wound" = "Wound 종료";
+"Explain" = "해설";
+"Done" = "완료";
+"Caseback" = "뒷면";
+"Dial" = "다이얼";
+"Winding crown" = "태엽 크라운";
+"Scroll over the crown or drag it upward to wind the watch" = "크라운 위에서 스크롤하거나 위로 드래그해 태엽을 감으세요";
+"POWER RESERVE" = "파워 리저브";
+"UNWOUND · SCROLL THE CROWN TO START" = "태엽 풀림 · 크라운을 스크롤해 시작하세요";
+"SLOW MOTION · TRAIN AT 1/20 SPEED" = "슬로 모션 · 기어 트레인 1/20 속도";
+"ESCAPEMENT RUNNING · 8 BEATS / SEC" = "탈진기 작동 중 · 초당 8진동";
+"Automatic" = "자동";
+"Sound" = "소리";
+"Stop" = "정지";
+"Reset" = "초기화";
+"Lift bridges" = "브리지 들어 올리기";
+"Previous part" = "이전 부품";
+"Next part" = "다음 부품";
+
+/* Settings window */
+"Automatic winding from activity" = "사용 활동으로 자동 감기";
+"Always on top" = "항상 위에 표시";
+"Demo speed" = "데모 속도";
+"Real time" = "실제 시간";
+
+/* Explain tour (Sources/Wound/Art/Explain.swift) */
+"Crown" = "크라운";
+"Winding the crown turns the crown wheel, which turns the ratchet. One full turn stores %lld min." = "크라운을 감으면 크라운 휠이 돌고, 크라운 휠이 래칫을 돌립니다. 한 바퀴를 감으면 %lld분이 저장됩니다.";
+"Ratchet & click" = "래칫과 클릭";
+"The ratchet sits on the barrel arbor. The click drops into each tooth so the spring cannot unwind back through the crown." = "래칫은 배럴 축 위에 있습니다. 클릭이 톱니마다 걸려서 태엽이 크라운 쪽으로 되풀리지 않습니다.";
+"Mainspring barrel" = "메인스프링 배럴";
+"The coiled mainspring holds %@ h, %@ h right now. Its toothed drum turns once every %@ h and drives the train." = "감긴 메인스프링은 최대 %1$@시간을 담고, 지금은 %2$@시간이 남았습니다. 톱니 달린 드럼이 %3$@시간에 한 바퀴 돌며 기어 트레인을 구동합니다.";
+"Going train" = "기어 트레인";
+"Centre, third and fourth wheels gear the spring down: the centre wheel turns once every %@ min, the fourth once every %@ s." = "센터 휠, 서드 휠, 포스 휠이 태엽의 회전을 감속합니다. 센터 휠은 %1$@분에 한 바퀴, 포스 휠은 %2$@초에 한 바퀴 돕니다.";
+"Escape wheel" = "이스케이프 휠";
+"The escape wheel would spin freely, but it may only advance half a tooth per beat: %@ turns a minute." = "이스케이프 휠은 그대로 두면 마구 돌겠지만, 한 진동에 반 톱니씩만 나아갈 수 있습니다. 1분에 %@바퀴입니다.";
+"Pallet fork" = "팰릿 포크";
+"Two ruby pallets lock and release the escape wheel %@ times a second, kicking the balance at each release." = "루비 팰릿 두 개가 이스케이프 휠을 1초에 %@번 잡았다 놓고, 놓을 때마다 밸런스를 밀어 줍니다.";
+"Balance & hairspring" = "밸런스와 헤어스프링";
+"The balance swings against its hairspring. This is the timekeeper: %@ beats a second, %@ an hour." = "밸런스는 헤어스프링에 맞서 흔들립니다. 시간을 재는 부품입니다. 1초에 %1$@진동, 1시간에 %2$@진동입니다.";
+"Hands" = "바늘";
+"The centre wheel carries the minute hand, the motion works divide it by 12 for the hour hand, and the fourth wheel carries the small seconds." = "센터 휠은 분침을 돌리고, 모션 워크가 이를 12분의 1로 줄여 시침을 돌리며, 포스 휠은 스몰 세컨드를 돌립니다.";
+"Automatic rotor" = "자동 로터";
+"On the back, the oscillating weight swings with motion (here, your mouse and keyboard). Reversing wheels turn both directions into winding." = "뒷면의 진동추는 움직임에 따라 흔들립니다(여기서는 마우스와 키보드 사용). 리버싱 휠이 양방향 회전을 모두 감기로 바꿉니다.";

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Mac App Store build only. Wound reads no files, opens no network connections and launches
+       nothing, so the sandbox needs no other entitlement. Opening the privacy policy in the
+       browser goes through Launch Services and needs none either. -->
+  <key>com.apple.security.app-sandbox</key><true/>
+</dict>
+</plist>

@@ -1,11 +1,16 @@
 import AppKit
 import SwiftUI
 
+/// Privacy policy, linked from the menu bar menu and Settings (App Review guideline 5.1.1(i)).
+let privacyPolicyURL = URL(string: "https://s3onghyun.github.io/wound/privacy.html")!
+
 struct WoundApp: App {
+    static let mainWindow = "main"
     @StateObject private var movement = MovementController()
 
     var body: some Scene {
-        WindowGroup("Wound") {
+        // A single Window (not a WindowGroup) so "Show Wound" brings back the one watch after it is closed.
+        Window("Wound", id: Self.mainWindow) {
             WoundView()
                 .environmentObject(movement)
                 .frame(minWidth: 460, minHeight: 640)
@@ -15,16 +20,35 @@ struct WoundApp: App {
         .windowResizability(.contentSize)
 
         MenuBarExtra("Wound · \(movement.reserveLabel)", systemImage: movement.running ? "gearshape.2" : "gearshape") {
-            Text(movement.running ? "\(movement.reserveLabel) remaining" : "Unwound")
-            Button("Show Wound") { NSApp.activate(ignoringOtherApps: true) }
-            Divider()
-            Toggle("Automatic winding", isOn: $movement.automatic)
-            Button("Quit Wound") { NSApp.terminate(nil) }
+            MenuBarMenu().environmentObject(movement)
         }
 
         Settings {
             SettingsView().environmentObject(movement)
         }
+    }
+}
+
+private struct MenuBarMenu: View {
+    @EnvironmentObject private var movement: MovementController
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
+
+    var body: some View {
+        Text(movement.running ? "\(movement.reserveLabel) remaining" : "Unwound")
+        Button("Show Wound") {
+            openWindow(id: WoundApp.mainWindow)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        Button("Settings…") {
+            NSApp.activate(ignoringOtherApps: true)
+            openSettings()
+        }
+        Divider()
+        Toggle("Automatic winding", isOn: $movement.automatic)
+        Button("Privacy Policy") { NSWorkspace.shared.open(privacyPolicyURL) }
+        Divider()
+        Button("Quit Wound") { NSApp.terminate(nil) }
     }
 }
 
@@ -147,9 +171,10 @@ private struct SettingsView: View {
                 Text("60×").tag(60.0)
                 Text("600×").tag(600.0)
             }
+            Link("Privacy Policy", destination: privacyPolicyURL)
         }
         .formStyle(.grouped)
-        .frame(width: 340, height: 190)
+        .frame(width: 340, height: 230)
         .padding()
     }
 }
