@@ -1,5 +1,6 @@
 #!/bin/sh
-# Produce the notarization-free release archive and its SHA-256 sidecar.
+# Produce an ad-hoc-signed, unnotarized archive and its SHA-256 sidecar for local testing.
+# The Release workflow signs and notarizes the app instead (.github/RELEASING.md).
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd)

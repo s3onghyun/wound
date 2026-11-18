@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2 (2026-11-18)
 
 ### Added
 - Korean interface, including the Explain tour.
@@ -13,6 +13,7 @@
 - The watch keeps animating, and switches to the caseback or an Explain step at once. On macOS 27 it only redrew when the window was resized.
 
 ### Changed
+- The app is signed with a Developer ID and notarized by Apple, so it opens without a trip to Privacy & Security.
 - Automatic winding no longer installs a global key-press monitor. Keyboard activity still winds the rotor through the time since the last input event, and other apps' keystrokes are never seen.
 
 ## 0.1.1 (2026-11-17)
