@@ -1,11 +1,11 @@
 # Mac App Store submission runbook
 
-How Wound goes from this repository to "Waiting for Review" without Xcode: SwiftPM + Command Line Tools build, `codesign`, `productbuild`, and the Transporter app.
+How Wound goes from this repository to "Waiting for Review" without Xcode: SwiftPM + Command Line Tools build, `codesign`, `productbuild`, and an upload through the App Store Connect API.
 The GitHub release (`scripts/bundle.sh`, `.github/workflows/release.yml`) is untouched by this path.
 
 Apple pages were read on 2026-11-17/18. Anything marked **(unverified)** is an interpretation or something Apple's pages do not state outright.
 
-## Owner actions (need the owner's Apple account; nothing here has been done yet)
+## Owner actions (need the owner's Apple account)
 
 | # | Action | Where | Who |
 |---|---|---|---|
@@ -17,10 +17,11 @@ Apple pages were read on 2026-11-17/18. Anything marked **(unverified)** is an i
 | 6 | Create the macOS app record ([fields](#3-app-store-connect-app-record)) | App Store Connect → Apps → + → New App | Account Holder, Admin or App Manager |
 | 7 | Enter metadata, App Privacy, age rating, price (Free), availability ([sources](#5-metadata)) | App Store Connect → the app | Account Holder, Admin or App Manager |
 | 8 | Build, sign and package (commands in [§6](#6-build-sign-package)); a crewmate can run them once the certificates are in the keychain | this Mac | owner's keychain |
-| 9 | Install Transporter (free, Mac App Store), sign in, upload the `.pkg` ([§7](#7-upload-with-transporter)) | Transporter | owner's Apple ID |
+| 9 | Upload the `.pkg` with `scripts/upload-mas.py` ([§7](#7-upload)) | this Mac | App Store Connect API key (no Apple ID sign-in) |
 | 10 | Pick the build, add screenshots, **Add for Review → Submit** ([§8](#8-submit)) | App Store Connect → the app → macOS App 0.x | owner |
 
 No provisioning profile is needed for App Store submission: Wound uses no entitlement besides App Sandbox (TN3125). One is only needed for TestFlight ([§9](#9-testflight-optional)).
+Confirmed by the first upload (0.1.2 build 1, 2026-11-18): Apple accepted it with the single warning ITMS-90889 "Cannot be used with TestFlight because the bundle at “Wound.app” is missing a provisioning profile".
 
 ## 1. App ID
 
@@ -152,20 +153,27 @@ plutil -p build/mas/Wound.app/Contents/Info.plist
 
 Do not test-install the `.pkg` on this Mac with `installer`: it targets `/Applications/Wound.app`, where the GitHub build is installed.
 
-## 7. Upload with Transporter
+## 7. Upload
 
-`xcrun altool` needs Xcode, which this Mac does not have (and does not need): App Store Connect accepts uploads from Transporter for every target type, and for macOS apps the only build-tool row is "Xcode 6 or later" (<https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds>).
+`xcrun altool` needs Xcode, which this Mac does not have, and the Transporter app needs an Apple ID sign-in.
+Neither is needed: `scripts/upload-mas.py` uploads through the public App Store Connect API (`POST /v1/buildUploads`, `POST /v1/buildUploadFiles`, the presigned `PUT`, then `PATCH … uploaded: true`) with an API key, and a key with the **Developer** role is enough.
 
-1. Install **Transporter** from the Mac App Store (free) and sign in with the developer Apple ID.
-2. Drag `build/mas/Wound-<version>-<build>.pkg` into the window → **Deliver**.
-3. Wait for the "processing complete" email (usually tens of minutes); the build then appears under the version's Build section.
+```sh
+# Key: ~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8 (mode 600); ids are overridable, see the script header.
+scripts/upload-mas.py build/mas/Wound-<version>-<build>.pkg
+```
 
-Known risks of a build made without Xcode **(unverified until the first upload)**:
+It reads the version and build number from the package, uploads it, and polls until Apple's upload validation finishes (about a minute), printing every ITMS error and warning; exit 0 means state `COMPLETE`.
+The build then shows up under the app's builds, usually already `VALID`; `GET /v1/builds?filter[app]=<app id>` shows `processingState`.
+A rejected upload prints its ITMS errors, the state is `FAILED` and the exit status is 1.
 
-- Upload validation may reject a bundle with no `DTXcode`/`DTXcodeBuild` keys (ITMS-90534 "Invalid Toolchain"). The script records the real SDK in `DTSDK*`/`DTPlatform*` but deliberately does not claim an Xcode version it was not built with. If Transporter rejects the build for this, the fallback is installing Xcode (free, needs the owner's Apple ID) and building with it; that is an owner decision.
-- `Contents/Resources/Wound_Wound.bundle` is a plain resource folder without its own Info.plist (SwiftPM's layout). If validation flags it, the fix is a small change to ship the three `.wav` files directly in `Contents/Resources`.
+The build's `CFBundleShortVersionString` must match the App Store version being submitted; this app's macOS version record was created as `1.0`, so rename it to the `VERSION` value (or build with `VERSION=1.0`) before choosing the build in §8.
 
-Transporter also ships a command-line `iTMSTransporter` inside `Transporter.app/Contents/itms/bin/` for scripted uploads (needs an app-specific password or API key; flags not verified here).
+Results of the first upload (0.1.2 build 1, 2026-11-18), for the risks a build made without Xcode carries:
+
+- No `DTXcode`/`DTXcodeBuild` keys: accepted, no ITMS-90534.
+- `Contents/Resources/Wound_Wound.bundle` without its own Info.plist: accepted.
+- Only warning: ITMS-90889 (no provisioning profile, so no TestFlight; see §9).
 
 ## 8. Submit
 
