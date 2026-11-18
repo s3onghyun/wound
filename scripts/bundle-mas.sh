@@ -7,6 +7,8 @@
 #   VERSION                 CFBundleShortVersionString (default: the VERSION file)
 #   WOUND_BUNDLE_IDENTIFIER bundle id (default com.s3onghyun.wound; use a test id for local rehearsals)
 #   MAS_SIGN_IDENTITY       codesign identity, e.g. "Apple Distribution: <name> (<team>)" (default "-", ad hoc)
+#   MAS_PROVISIONING_PROFILE the Mac App Store distribution profile for that identity, required with it; embedded
+#                           as Contents/embedded.provisionprofile after scripts/check-mas-profile.sh accepts it
 #   MAS_INSTALLER_IDENTITY  when set, also writes build/mas/Wound-<version>-<build>.pkg signed with it,
 #                           e.g. "3rd Party Mac Developer Installer: <name> (<team>)"
 #   ARCHS                   universal (default), arm64 or x86_64
@@ -20,6 +22,20 @@ bundle_identifier=${WOUND_BUNDLE_IDENTIFIER:-com.s3onghyun.wound}
 sign_identity=${MAS_SIGN_IDENTITY:--}
 out="$root/build/mas"
 app="$out/Wound.app"
+
+if [ "$sign_identity" = - ]; then
+  # The App ID entitlements are restricted: an ad hoc app carrying them would not launch.
+  if [ -n "${MAS_PROVISIONING_PROFILE:-}" ]; then
+    echo "MAS_PROVISIONING_PROFILE needs MAS_SIGN_IDENTITY (the profile's certificate)" >&2; exit 2
+  fi
+else
+  if [ -z "${MAS_PROVISIONING_PROFILE:-}" ]; then
+    echo "MAS_SIGN_IDENTITY needs MAS_PROVISIONING_PROFILE; without one App Store Connect warns ITMS-90889 and the build cannot go to TestFlight" >&2
+    exit 2
+  fi
+  # Before the slow build, so a wrong profile fails at once.
+  team=$("$root/scripts/check-mas-profile.sh" "$MAS_PROVISIONING_PROFILE" "$bundle_identifier" "$sign_identity")
+fi
 
 case $build in
   ''|*[!0-9]*) echo "MAS_BUILD must be a positive integer" >&2; exit 2 ;;
@@ -104,15 +120,40 @@ cat > "$app/Contents/Info.plist" <<PLIST
 PLIST
 plutil -lint "$app/Contents/Info.plist" >/dev/null
 
+# The checked-in entitlements are App Sandbox only; a signed build adds the App ID and team the profile grants.
+entitlements="$out/Wound.entitlements"
+cp "$root/Resources/MAS/Wound.entitlements" "$entitlements"
+if [ "$sign_identity" != - ]; then
+  cp "$MAS_PROVISIONING_PROFILE" "$app/Contents/embedded.provisionprofile"
+  plutil -insert com\\.apple\\.application-identifier -string "$team.$bundle_identifier" "$entitlements"
+  plutil -insert com\\.apple\\.developer\\.team-identifier -string "$team" "$entitlements"
+fi
+
 # Uploads must not carry quarantine or other extended attributes.
 xattr -cr "$app"
 codesign --force --timestamp=none --options runtime --sign "$sign_identity" \
-  --entitlements "$root/Resources/MAS/Wound.entitlements" "$app"
-codesign --verify --strict "$app"
+  --entitlements "$entitlements" "$app"
+codesign --verify --strict --deep "$app"
+
+signed="$out/signed.entitlements"
+codesign -d --entitlements - --xml "$app" 2>/dev/null > "$signed"
+signed_value() { plutil -extract "$1" raw -o - "$signed" 2>/dev/null || true; }
+if [ "$(signed_value com\\.apple\\.security\\.app-sandbox)" != true ]; then
+  echo "the signed app is not sandboxed" >&2; exit 1
+fi
+if [ "$sign_identity" != - ]; then
+  if [ "$(signed_value com\\.apple\\.application-identifier)" != "$team.$bundle_identifier" ] ||
+    [ "$(signed_value com\\.apple\\.developer\\.team-identifier)" != "$team" ]; then
+    echo "the signed entitlements do not carry the profile's App ID and team" >&2; exit 1
+  fi
+  cmp -s "$MAS_PROVISIONING_PROFILE" "$app/Contents/embedded.provisionprofile" ||
+    { echo "Contents/embedded.provisionprofile is not the checked profile" >&2; exit 1; }
+fi
 
 if [ -n "${MAS_INSTALLER_IDENTITY:-}" ]; then
   pkg="$out/Wound-$version-$build.pkg"
   productbuild --sign "$MAS_INSTALLER_IDENTITY" --component "$app" /Applications "$pkg"
+  pkgutil --check-signature "$pkg" >/dev/null
   printf '%s\n' "$pkg"
 fi
 printf '%s\n' "$app"

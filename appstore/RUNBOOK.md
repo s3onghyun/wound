@@ -14,14 +14,15 @@ Apple pages were read on 2026-11-17/18. Anything marked **(unverified)** is an i
 | 3 | Declare **non-trader** status for the EU Digital Services Act ([steps](#4-eu-digital-services-act-non-trader-declaration)) | App Store Connect → Business → Agreements → Compliance | Account Holder or Admin |
 | 4 | Register the explicit App ID `com.s3onghyun.wound` ([steps](#1-app-id)) | developer.apple.com → Certificates, Identifiers & Profiles | Account Holder or Admin |
 | 5 | Create a CSR on this Mac, then the **Apple Distribution** and **Mac Installer Distribution** certificates, and install both ([steps](#2-certificates)) | Keychain Access + Certificates, Identifiers & Profiles | Account Holder or Admin |
+| 5a | Create the **Mac App Store Connect** provisioning profile ([steps](#2a-provisioning-profile)) and keep it outside the repository | Certificates, Identifiers & Profiles → Profiles | Account Holder or Admin |
 | 6 | Create the macOS app record ([fields](#3-app-store-connect-app-record)) | App Store Connect → Apps → + → New App | Account Holder, Admin or App Manager |
 | 7 | Enter metadata, App Privacy, age rating, price (Free), availability ([sources](#5-metadata)) | App Store Connect → the app | Account Holder, Admin or App Manager |
 | 8 | Build, sign and package (commands in [§6](#6-build-sign-package)); a crewmate can run them once the certificates are in the keychain | this Mac | owner's keychain |
 | 9 | Upload the `.pkg` with `scripts/upload-mas.py` ([§7](#7-upload)) | this Mac | App Store Connect API key (no Apple ID sign-in) |
 | 10 | Pick the build, add screenshots, **Add for Review → Submit** ([§8](#8-submit)) | App Store Connect → the app → macOS App 0.x | owner |
 
-No provisioning profile is needed for App Store submission: Wound uses no entitlement besides App Sandbox (TN3125). One is only needed for TestFlight ([§9](#9-testflight-optional)).
-Confirmed by the first upload (0.1.2 build 1, 2026-11-18): Apple accepted it with the single warning ITMS-90889 "Cannot be used with TestFlight because the bundle at “Wound.app” is missing a provisioning profile".
+Every signed build embeds a provisioning profile. App Review alone would not need one (Wound uses no entitlement besides App Sandbox, TN3125), but without it App Store Connect warns ITMS-90889 and the build cannot go to TestFlight.
+That is what happened to the first upload (0.1.2 build 1, 2026-11-18): accepted with the single warning ITMS-90889 "Cannot be used with TestFlight because the bundle at “Wound.app” is missing a provisioning profile". From build 2 on, `scripts/bundle-mas.sh` refuses to sign without a profile.
 
 ## 1. App ID
 
@@ -45,6 +46,14 @@ Distribution certificates belong to the team, one of each type per team, and "On
 4. Check: `security find-identity -v -p codesigning` lists the Apple Distribution identity; `security find-identity -v` also lists the installer identity.
 
 Not needed for the App Store: Developer ID certificates (those are for notarized direct downloads, a separate decision).
+
+## 2a. Provisioning profile
+
+Profiles → **+** → Distribution → **Mac App Store Connect** → App ID `com.s3onghyun.wound` → the **Apple Distribution** certificate of §2 → name `Wound Mac App Store` → Generate → Download.
+Created 2026-11-18, expires 2027-11-18; regenerate it before then, and whenever the Apple Distribution certificate is replaced (the profile names the certificate).
+
+Keep the `.provisionprofile` outside the repository (on this Mac: `~/.local/share/apple-mas/Wound_Mac_App_Store.provisionprofile`, mode 600) and pass its path as `MAS_PROVISIONING_PROFILE`.
+`scripts/check-mas-profile.sh <profile> <bundle id> <identity>`, which `bundle-mas.sh` runs before building, fails unless it is a macOS distribution profile (no `ProvisionedDevices`, no `ProvisionsAllDevices`, no `get-task-allow`), not expired, for App ID `<TEAMID>.com.s3onghyun.wound`, and lists the certificate of `MAS_SIGN_IDENTITY` (compared by SHA-1 with `security find-identity`).
 
 ## 3. App Store Connect app record
 
@@ -125,27 +134,32 @@ swift test -Xswiftc -F/Library/Developer/CommandLineTools/Library/Developer/Fram
   -Xlinker -F/Library/Developer/CommandLineTools/Library/Developer/Frameworks \
   -Xlinker -rpath -Xlinker /Library/Developer/CommandLineTools/Library/Developer/Frameworks $SWIFT_BUILD_FLAGS
 
-MAS_BUILD=1 \
+MAS_BUILD=2 \
 MAS_SIGN_IDENTITY="Apple Distribution: <Name> (<TEAMID>)" \
 MAS_INSTALLER_IDENTITY="3rd Party Mac Developer Installer: <Name> (<TEAMID>)" \
+MAS_PROVISIONING_PROFILE=~/.local/share/apple-mas/Wound_Mac_App_Store.provisionprofile \
   scripts/bundle-mas.sh
-# -> build/mas/Wound.app and build/mas/Wound-<version>-1.pkg
+# -> build/mas/Wound.app and build/mas/Wound-<version>-2.pkg
 ```
 
 What `scripts/bundle-mas.sh` does, so it can be done by hand if needed:
 
+0. With a signing identity: requires `MAS_PROVISIONING_PROFILE` and runs `scripts/check-mas-profile.sh` on it (§2a), which also yields the team id.
 1. `swift build -c release --triple {arm64,x86_64}-apple-macosx14.0 -Xswiftc -DMAS` into `.build/mas-*`, then `lipo -create` a universal binary.
    `-D MAS` compiles out `--self-test`, `--render-demo`, `--render-explain` and `--render-icon` (guideline 2.5.19); the script fails if any of those strings is still in the binary.
 2. Assembles `Wound.app`: binary, `Wound_Wound.bundle` (sounds), `en.lproj`/`ko.lproj`, `Wound.icns`, `PrivacyInfo.xcprivacy`.
 3. Writes Info.plist with `LSApplicationCategoryType` = `public.app-category.lifestyle`, integer `CFBundleVersion`, `CFBundleIconFile`, `ITSAppUsesNonExemptEncryption` = false (answers the export-compliance question), `CFBundleLocalizations` en/ko, `LSUIElement`, and the `DTSDK*`/`DTPlatform*` keys of the SDK used.
 4. `xattr -cr Wound.app` (uploads must carry no `com.apple.quarantine`; <https://developer.apple.com/news/upcoming-requirements/>).
-5. `codesign --force --options runtime --entitlements Resources/MAS/Wound.entitlements --sign "$MAS_SIGN_IDENTITY" Wound.app` and `codesign --verify --strict`.
-6. `productbuild --sign "$MAS_INSTALLER_IDENTITY" --component Wound.app /Applications Wound-<version>-<build>.pkg`.
+5. With a signing identity: copies the profile to `Wound.app/Contents/embedded.provisionprofile`, and signs with `Resources/MAS/Wound.entitlements` (App Sandbox) plus `com.apple.application-identifier` = `<TEAMID>.com.s3onghyun.wound` and `com.apple.developer.team-identifier` = `<TEAMID>`, the two entitlements the profile grants (written to `build/mas/Wound.entitlements`).
+   An ad hoc build gets App Sandbox only, because an unprovisioned app carrying those restricted entitlements would not launch.
+6. `codesign --force --options runtime --entitlements build/mas/Wound.entitlements --sign "$MAS_SIGN_IDENTITY" Wound.app`, `codesign --verify --strict --deep`, then reads the signed entitlements back and fails unless App Sandbox, the App ID and the team are there and the embedded profile is the checked one.
+7. `productbuild --sign "$MAS_INSTALLER_IDENTITY" --component Wound.app /Applications Wound-<version>-<build>.pkg` and `pkgutil --check-signature`.
 
 Checks before uploading:
 
 ```sh
-codesign -d --entitlements - build/mas/Wound.app       # only com.apple.security.app-sandbox
+codesign -d --entitlements - build/mas/Wound.app       # app-sandbox, application-identifier, team-identifier
+ls build/mas/Wound.app/Contents/embedded.provisionprofile
 codesign -dvv build/mas/Wound.app 2>&1 | grep Authority # Apple Distribution: …
 pkgutil --check-signature build/mas/Wound-*.pkg         # 3rd Party Mac Developer Installer: …
 plutil -p build/mas/Wound.app/Contents/Info.plist
@@ -173,7 +187,7 @@ Results of the first upload (0.1.2 build 1, 2026-11-18), for the risks a build m
 
 - No `DTXcode`/`DTXcodeBuild` keys: accepted, no ITMS-90534.
 - `Contents/Resources/Wound_Wound.bundle` without its own Info.plist: accepted.
-- Only warning: ITMS-90889 (no provisioning profile, so no TestFlight; see §9).
+- Only warning: ITMS-90889 (no provisioning profile, so no TestFlight); fixed from build 2 by embedding the profile (§2a).
 
 ## 8. Submit
 
@@ -188,7 +202,7 @@ App Store Connect → Apps → Wound → the macOS version (same number as `VERS
 
 ## 9. TestFlight (optional)
 
-TestFlight for macOS needs a provisioning profile even without restricted entitlements (TN3125): Profiles → **+** → **Mac App Store Connect** → App ID `com.s3onghyun.wound` → the Apple Distribution certificate → download, copy into `Wound.app/Contents/embedded.provisionprofile` before signing, and add `com.apple.application-identifier` (`<TEAMID>.com.s3onghyun.wound`) and `com.apple.developer.team-identifier` (`<TEAMID>`) to the entitlements. Not needed for App Review.
+TestFlight for macOS needs a provisioning profile even without restricted entitlements (TN3125). Signed builds embed the §2a profile, so a processed build can be added to TestFlight without another step here.
 
 ## 10. Local sandbox rehearsal (no account needed)
 
