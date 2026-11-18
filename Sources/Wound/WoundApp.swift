@@ -180,7 +180,8 @@ private struct SettingsView: View {
 }
 
 private struct MovementRenderView: NSViewRepresentable {
-    let movement: MovementController
+    // Observed, so every change (each 1/30 s tick, caseback, Explain) calls updateNSView and redraws the watch.
+    @ObservedObject var movement: MovementController
 
     func makeNSView(context: Context) -> WatchNSView { WatchNSView(movement: movement) }
     func updateNSView(_ view: WatchNSView, context: Context) { view.movement = movement; view.needsDisplay = true }

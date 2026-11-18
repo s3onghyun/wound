@@ -10,6 +10,7 @@
 
 ### Fixed
 - Show Wound in the menu bar menu reopens the watch window after it has been closed.
+- The watch keeps animating, and switches to the caseback or an Explain step at once. On macOS 27 it only redrew when the window was resized.
 
 ### Changed
 - Automatic winding no longer installs a global key-press monitor. Keyboard activity still winds the rotor through the time since the last input event, and other apps' keystrokes are never seen.

@@ -104,6 +104,8 @@ Locales: `en-US` = English (U.S.), `ko` = Korean.
 Review contact (name, phone, email) is entered by the owner and is not stored here. Sign-in required: **No**.
 
 Screenshots: `appstore/screenshots/en-US/*.png` and `appstore/screenshots/ko/*.png`, 2880×1800, PNG, no alpha (accepted 16:10 sizes: 1280×800, 1440×900, 2560×1600, 2880×1800; 1-10 per locale).
+Upload them in file order: 1 running dial, 2 Explain (going train, bridges lifted), 3 caseback rotor, 4 unwound.
+Each is a Retina capture of the MAS build's own window (the sandboxed app, launched with `-AppleLanguages '(en)'` or `'(ko)'`) on a plain dark backdrop with a caption; nothing in the window is retouched.
 The icon comes from the build (`Contents/Resources/Wound.icns`, 16-1024 px, made by `scripts/make-icon.sh`); there is no separate upload for macOS.
 
 ## 6. Build, sign, package
