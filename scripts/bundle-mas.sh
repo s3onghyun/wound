@@ -9,6 +9,8 @@
 #   MAS_SIGN_IDENTITY       codesign identity, e.g. "Apple Distribution: <name> (<team>)" (default "-", ad hoc)
 #   MAS_PROVISIONING_PROFILE the Mac App Store distribution profile for that identity, required with it; embedded
 #                           as Contents/embedded.provisionprofile after scripts/check-mas-profile.sh accepts it
+#   MAS_KEYCHAIN            keychain holding both identities, passed to codesign, productbuild and the profile
+#                           check (default: the keychain search list)
 #   MAS_INSTALLER_IDENTITY  when set, also writes build/mas/Wound-<version>-<build>.pkg signed with it,
 #                           e.g. "3rd Party Mac Developer Installer: <name> (<team>)"
 #   ARCHS                   universal (default), arm64 or x86_64
@@ -36,6 +38,13 @@ else
   # Before the slow build, so a wrong profile fails at once.
   team=$("$root/scripts/check-mas-profile.sh" "$MAS_PROVISIONING_PROFILE" "$bundle_identifier" "$sign_identity")
 fi
+
+# Runs a signing command with --keychain "$MAS_KEYCHAIN" right after its name, when that is set.
+with_keychain() {
+  command=$1
+  shift
+  if [ -n "${MAS_KEYCHAIN:-}" ]; then "$command" --keychain "$MAS_KEYCHAIN" "$@"; else "$command" "$@"; fi
+}
 
 case $build in
   ''|*[!0-9]*) echo "MAS_BUILD must be a positive integer" >&2; exit 2 ;;
@@ -125,13 +134,14 @@ entitlements="$out/Wound.entitlements"
 cp "$root/Resources/MAS/Wound.entitlements" "$entitlements"
 if [ "$sign_identity" != - ]; then
   cp "$MAS_PROVISIONING_PROFILE" "$app/Contents/embedded.provisionprofile"
+  chmod 644 "$app/Contents/embedded.provisionprofile"  # the source is usually private to its owner
   plutil -insert com\\.apple\\.application-identifier -string "$team.$bundle_identifier" "$entitlements"
   plutil -insert com\\.apple\\.developer\\.team-identifier -string "$team" "$entitlements"
 fi
 
 # Uploads must not carry quarantine or other extended attributes.
 xattr -cr "$app"
-codesign --force --timestamp=none --options runtime --sign "$sign_identity" \
+with_keychain codesign --force --timestamp=none --options runtime --sign "$sign_identity" \
   --entitlements "$entitlements" "$app"
 codesign --verify --strict --deep "$app"
 
@@ -152,7 +162,7 @@ fi
 
 if [ -n "${MAS_INSTALLER_IDENTITY:-}" ]; then
   pkg="$out/Wound-$version-$build.pkg"
-  productbuild --sign "$MAS_INSTALLER_IDENTITY" --component "$app" /Applications "$pkg"
+  with_keychain productbuild --sign "$MAS_INSTALLER_IDENTITY" --component "$app" /Applications "$pkg"
   pkgutil --check-signature "$pkg" >/dev/null
   printf '%s\n' "$pkg"
 fi
