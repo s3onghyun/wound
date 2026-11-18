@@ -112,12 +112,17 @@ final class MovementController: ObservableObject {
         NSApp.windows.first(where: { $0.title == "Wound" })?.level = alwaysOnTop ? .floating : .normal
     }
 
+    /// Other apps' key presses are deliberately not monitored: a global key monitor needs Accessibility
+    /// trust and reads as keystroke watching. `automaticFallback` still sees keyboard activity, through
+    /// the time since the last input event, without seeing any key.
+    static let globalActivityEvents: NSEvent.EventTypeMask = [.mouseMoved, .scrollWheel]
+    static let localActivityEvents: NSEvent.EventTypeMask = [.mouseMoved, .scrollWheel, .keyDown]
+
     private func installActivityMonitors() {
-        let mask: NSEvent.EventTypeMask = [.mouseMoved, .scrollWheel, .keyDown]
-        if let global = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: { [weak self] _ in
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: Self.globalActivityEvents, handler: { [weak self] _ in
             Task { @MainActor in self?.registerActivity() }
         }) { observers.append(global) }
-        if let local = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { [weak self] event in
+        if let local = NSEvent.addLocalMonitorForEvents(matching: Self.localActivityEvents, handler: { [weak self] event in
             Task { @MainActor in self?.registerActivity() }
             return event
         }) { observers.append(local) }

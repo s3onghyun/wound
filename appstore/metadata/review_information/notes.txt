@@ -1,0 +1,18 @@
+Wound is a mechanical watch with a 40-hour power reserve that drains in real time. It needs no account, sign-in or network connection, and it collects no data.
+
+Where to find it
+- Wound opens its watch window at launch and also lives in the menu bar (gear icon). It has no Dock icon.
+- If you close the window, choose Show Wound from the menu bar icon to bring it back. Settings… and Privacy Policy are in the same menu.
+
+How to try it
+1. Wind: scroll over the crown at 3 o'clock (right edge of the watch), or drag upward over it. The POWER RESERVE bar fills; past 40 hours the crown resists.
+2. Explain: press Explain for a guided tour of the movement. Use the arrow keys or the chevrons to move between the nine parts, and turn on Lift bridges to see the wheels underneath. Press Done to leave.
+3. Caseback: press Caseback to flip the watch and see the automatic rotor.
+4. Stop shows the unwound state at once (the watch stops and the bar turns red); scroll the crown to start it again. Reset returns to an 8-hour reserve.
+5. Settings (menu bar > Settings…): Sound is off by default; turn it on to hear the tick, the crown clicks and the rotor. Demo speed 600× drains the reserve quickly so you can watch it run down.
+
+Automatic winding
+With Automatic on, mouse and keyboard activity winds the rotor a little. Wound reads only the time since the last input event (CGEventSource.secondsSinceLastEventType) and mouse movement over the screen. It does not read keystrokes, needs no Accessibility or Input Monitoring permission, and asks for none.
+
+Privacy
+The app is sandboxed with no entitlement besides App Sandbox. Settings and the reserve are stored in UserDefaults inside the app container. The privacy policy is linked from the menu bar menu and from Settings.

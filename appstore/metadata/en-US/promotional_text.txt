@@ -1,0 +1,1 @@
+A skeleton mechanical watch for your Mac with a real 40-hour power reserve. Wind the crown, watch the escapement beat, and press Explain to follow the power path.

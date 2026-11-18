@@ -1,0 +1,21 @@
+Wound is a mechanical watch for your Mac that runs on a real 40-hour power reserve. Neglect it and it stops. Wind it and it comes back to life.
+
+WIND IT BY HAND
+Scroll over the crown at 3 o'clock, or drag it upward, and the watch winds one ratchet click at a time. Past a full barrel the crown pushes back instead of storing more.
+
+A MOVEMENT YOU CAN SEE
+The skeleton calibre is drawn live in Core Graphics: the mainspring barrel, going train, escape wheel, pallet fork and a balance wheel that beats eight times a second. Flip to the caseback to see the automatic rotor.
+
+AUTOMATIC WINDING
+Your everyday mouse and keyboard activity gives the rotor a little energy, the way wrist motion winds an automatic watch. Wound only checks how long ago the last input happened; it never reads what you type.
+
+EXPLAIN THE MOVEMENT
+Press Explain for a guided tour along the power path: crown, ratchet and click, mainspring barrel, going train, escape wheel, pallet fork, balance and hairspring, hands, and the automatic rotor. The lit part is the real drawing, the train slows to 1/20 speed so you can see each beat, and Lift bridges reveals the wheels underneath. Every number in a caption comes from the same model that moves the parts.
+
+ALWAYS AT HAND
+The power reserve sits in the menu bar. The reserve and the time keep draining while Wound is closed, so the watch you come back to is the watch you left.
+
+PRIVATE BY DESIGN
+No account, no network, no analytics. Wound collects no data; your settings stay on your Mac.
+
+Sound (off by default), always-on-top and an accelerated demo speed are in Settings. Available in English and Korean.

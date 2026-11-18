@@ -2,6 +2,11 @@ import CoreText
 import Foundation
 import SwiftUI
 
+// The Mac App Store build (scripts/bundle-mas.sh, -D MAS) has no command-line modes: App Review
+// guideline 2.5.19 rejects undocumented features, and a sandboxed app cannot write to arbitrary paths.
+#if MAS
+WoundApp.main()
+#else
 func renderDemo(to directory: String) {
     let fileManager = FileManager.default
     try? fileManager.createDirectory(atPath: directory, withIntermediateDirectories: true)
@@ -68,6 +73,30 @@ func renderExplain(to directory: String) {
     }
 }
 
+/// 1024 px app icon: the running skeleton movement on a dark plate inset to the macOS icon grid
+/// (824 px rounded square, 100 px margin), so the system shadow and mask line up with other apps.
+func renderIcon(to path: String) {
+    let size = 1024.0, inset = 100.0
+    let plate = CGPath(roundedRect: CGRect(x: inset, y: inset, width: size - 2 * inset, height: size - 2 * inset),
+                       cornerWidth: 185, cornerHeight: 185, transform: nil)
+    var state = MvState()
+    state.baseHours = 10 + 10 / 60
+    state.baseSeconds = 30
+    state.reserve = 0.8
+    state.beats = 3
+    state.bal = rad(10)
+    let context = makeContext(Int(size), Int(size))
+    context.scoped {
+        context.clipPath(plate)
+        background(context, size, size, top: Col(hex: 0x2a2b31), bottom: Col(hex: 0x08090c))
+        inWatch(context, center: CGPoint(x: size / 2 - 12, y: size / 2), scale: 824 / 58) {
+            drawSkeletonFront(context, state)
+        }
+    }
+    context.stroke(plate, Col(1, 1, 1, 0.08), 2)
+    savePNG(context, path)
+}
+
 if CommandLine.arguments.contains("--self-test") {
     do {
         try MovementModelChecks.run()
@@ -79,6 +108,9 @@ if CommandLine.arguments.contains("--self-test") {
     renderDemo(to: CommandLine.arguments[index + 1])
 } else if let index = CommandLine.arguments.firstIndex(of: "--render-explain"), CommandLine.arguments.indices.contains(index + 1) {
     renderExplain(to: CommandLine.arguments[index + 1])
+} else if let index = CommandLine.arguments.firstIndex(of: "--render-icon"), CommandLine.arguments.indices.contains(index + 1) {
+    renderIcon(to: CommandLine.arguments[index + 1])
 } else {
     WoundApp.main()
 }
+#endif

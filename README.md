@@ -36,9 +36,10 @@ Wound needs macOS 14 or later and the Swift toolchain that ships with Xcode or C
 swift run
 ```
 
-Use the menu-bar extra to check the reserve without opening the floating window.
+Use the menu-bar extra to check the reserve without opening the floating window, to bring the window back with **Show Wound** after closing it, and to open **Settings…**.
 The Settings window has sound, always-on-top, automatic winding, and accelerated demo-speed controls.
 Sound is off by default.
+The interface is in English and Korean; `swift run` shows English, and the app bundle follows the system language.
 
 ## Interaction
 
@@ -109,6 +110,22 @@ ffmpeg -framerate 10 -i demo/frames/frame-%04d.png -c:v libx264 -pix_fmt yuv420p
 ```
 
 The renderer makes a 24-second standalone movement reel: unwound, crown-wound, running, then caseback rotor.
+
+## Mac App Store build
+
+`scripts/bundle-mas.sh` builds a separate, sandboxed `build/mas/Wound.app` for the Mac App Store.
+It compiles with `-D MAS`, which leaves out the command-line render and self-test modes, and adds the App Sandbox entitlement, a privacy manifest, the store's Info.plist keys, and an integer build number.
+`scripts/bundle.sh` and the GitHub release are unchanged by it.
+Store text, privacy and age-rating answers, screenshots, and the submission steps are in [`appstore/`](appstore/RUNBOOK.md).
+The support and privacy pages in `docs/` are served by GitHub Pages.
+
+The app icon is drawn by the same Core Graphics code as the watch: `scripts/make-icon.sh` renders `Resources/AppIcon-1024.png` and packs `Resources/Wound.icns` with `iconutil`.
+
+With Command Line Tools 27.2, `swift build` needs the 26.5 SDK and the native build system:
+
+```sh
+SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk SWIFT_BUILD_FLAGS="--build-system native" scripts/bundle-mas.sh
+```
 
 ## License
 
