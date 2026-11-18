@@ -4,7 +4,8 @@
 <dict>
   <!-- Mac App Store build only. Wound reads no files, opens no network connections and launches
        nothing, so the sandbox needs no other entitlement. Opening the privacy policy in the
-       browser goes through Launch Services and needs none either. -->
+       browser goes through Launch Services and needs none either. A signed build also gets the App ID
+       and team entitlements of its provisioning profile from scripts/bundle-mas.sh. -->
   <key>com.apple.security.app-sandbox</key><true/>
 </dict>
 </plist>
