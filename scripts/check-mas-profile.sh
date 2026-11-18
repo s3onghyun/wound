@@ -5,6 +5,7 @@
 # certificate of the codesign identity. scripts/bundle-mas.sh runs it before signing; see appstore/RUNBOOK.md §6.
 #
 #   scripts/check-mas-profile.sh <profile> <bundle id> <codesign identity: name or SHA-1>
+#   MAS_KEYCHAIN   look for the identity only in this keychain (default: the keychain search list)
 set -eu
 
 if [ "$#" -ne 3 ]; then
@@ -49,13 +50,13 @@ application_identifier=$(value Entitlements.com\\.apple\\.application-identifier
 [ "$(value Entitlements.com\\.apple\\.developer\\.team-identifier || true)" = "$team" ] ||
   fail "team identifier entitlement is not $team"
 
-# SHA-1 of the identity's certificate, from the same keychain search list codesign uses.
-identity_sha1=$(security find-identity -v -p codesigning | awk -v id="$sign_identity" '
+# SHA-1 of the identity's certificate, from the keychain codesign will use.
+identity_sha1=$(security find-identity -v -p codesigning ${MAS_KEYCHAIN:+"$MAS_KEYCHAIN"} | awk -v id="$sign_identity" '
   $2 ~ /^[0-9A-F]+$/ {
     name = $0; sub(/^[^"]*"/, "", name); sub(/"[^"]*$/, "", name)
     if (name == id || $2 == toupper(id)) { print $2; exit }
   }')
-[ -n "$identity_sha1" ] || fail "codesign identity '$sign_identity' is not in the keychain search list (is the keychain unlocked?)"
+[ -n "$identity_sha1" ] || fail "codesign identity '$sign_identity' is not in ${MAS_KEYCHAIN:-the keychain search list} (is the keychain unlocked?)"
 
 index=0
 while value "DeveloperCertificates.$index" > "$work/cert.b64"; do

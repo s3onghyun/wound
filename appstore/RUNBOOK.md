@@ -138,6 +138,7 @@ MAS_BUILD=2 \
 MAS_SIGN_IDENTITY="Apple Distribution: <Name> (<TEAMID>)" \
 MAS_INSTALLER_IDENTITY="3rd Party Mac Developer Installer: <Name> (<TEAMID>)" \
 MAS_PROVISIONING_PROFILE=~/.local/share/apple-mas/Wound_Mac_App_Store.provisionprofile \
+MAS_KEYCHAIN=~/Library/Keychains/mas-build.keychain-db \
   scripts/bundle-mas.sh
 # -> build/mas/Wound.app and build/mas/Wound-<version>-2.pkg
 ```
