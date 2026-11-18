@@ -4,7 +4,7 @@
 
 1. Download `Wound-@VERSION@-macos-universal.zip` below, and optionally verify it with `shasum -a 256 -c Wound-@VERSION@-macos-universal.zip.sha256`.
 2. Unzip it and move `Wound.app` to Applications.
-3. Wound is ad-hoc signed and not notarized. On macOS 15 or later, open it once and then choose **Open Anyway** in System Settings -> Privacy & Security. On macOS 13-14, Control-click the app and choose **Open**.
+3. Open it. Wound is signed with a Developer ID and notarized by Apple, so it opens like any other downloaded app.
 
 Or install it with Homebrew: `brew install --cask s3onghyun/tap/wound`.
 
